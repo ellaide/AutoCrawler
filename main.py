@@ -52,7 +52,7 @@ class Sites:
 
 class AutoCrawler:
     def __init__(self, skip_already_exist=True, n_threads=4, do_google=True, do_naver=True, download_path='download',
-                 full_resolution=False, face=False, no_gui=False, limit=0):
+                 full_resolution=True, face=False, no_gui=False, limit=0, keyword=''):
         """
         :param skip_already_exist: Skips keyword already downloaded before. This is needed when re-downloading.
         :param n_threads: Number of threads to download.
@@ -74,6 +74,7 @@ class AutoCrawler:
         self.face = face
         self.no_gui = no_gui
         self.limit = limit
+        self.keyword = keyword
 
         os.makedirs('./{}'.format(self.download_path), exist_ok=True)
 
@@ -251,22 +252,22 @@ class AutoCrawler:
         self.download_from_site(keyword=args[0], site_code=args[1])
 
     def do_crawling(self):
-        keywords = self.get_keywords()
+        #keywords = self.get_keywords()
 
         tasks = []
-
-        for keyword in keywords:
-            dir_name = '{}/{}'.format(self.download_path, keyword)
-            if os.path.exists(os.path.join(os.getcwd(), dir_name)) and self.skip:
-                print('Skipping already existing directory {}'.format(dir_name))
-                continue
-
+        
+        keyword = self.keyword
+        dir_name = '{}/{}'.format(self.download_path, keyword)
+        if os.path.exists(os.path.join(os.getcwd(), dir_name)) and self.skip:
+            print('Skipping already existing directory {}'.format(dir_name))
+        else:
             if self.do_google:
                 if self.full_resolution:
+
                     tasks.append([keyword, Sites.GOOGLE_FULL])
                 else:
+                    
                     tasks.append([keyword, Sites.GOOGLE])
-
             if self.do_naver:
                 if self.full_resolution:
                     tasks.append([keyword, Sites.NAVER_FULL])
@@ -333,23 +334,24 @@ if __name__ == '__main__':
                         help='Skips keyword already downloaded before. This is needed when re-downloading.')
     parser.add_argument('--threads', type=int, default=4, help='Number of threads to download.')
     parser.add_argument('--google', type=str, default='true', help='Download from google.com (boolean)')
-    parser.add_argument('--naver', type=str, default='true', help='Download from naver.com (boolean)')
+    parser.add_argument('--naver', type=str, default='false', help='Download from naver.com (boolean)')
     parser.add_argument('--full', type=str, default='false', help='Download full resolution image instead of thumbnails (slow)')
     parser.add_argument('--face', type=str, default='false', help='Face search mode')
     parser.add_argument('--no_gui', type=str, default='auto', help='No GUI mode. Acceleration for full_resolution mode. '
                                                                    'But unstable on thumbnail mode. '
                                                                     'Default: "auto" - false if full=false, true if full=true')
-    parser.add_argument('--limit', type=int, default=0, help='Maximum count of images to download per site. (0: infinite)')
+    parser.add_argument('--limit', type=int, default=10, help='Maximum count of images to download per site. (0: infinite)')
+    parser.add_argument('--keyword', type=str, default='', help='Keyword')
     args = parser.parse_args()
-
-    _skip = False if str(args.skip).lower() == 'false' else True
-    _threads = args.threads
-    _google = False if str(args.google).lower() == 'false' else True
-    _naver = False if str(args.naver).lower() == 'false' else True
-    _full = False if str(args.full).lower() == 'false' else True
-    _face = False if str(args.face).lower() == 'false' else True
-    _limit = int(args.limit)
-
+    
+    _skip = False
+    _threads = 4
+    _google = True
+    _naver = False
+    _full = True
+    _face = False
+    _limit = 10
+    
     no_gui_input = str(args.no_gui).lower()
     if no_gui_input == 'auto':
         _no_gui = _full
@@ -358,10 +360,11 @@ if __name__ == '__main__':
     else:
         _no_gui = False
 
-    print('Options - skip:{}, threads:{}, google:{}, naver:{}, full_resolution:{}, face:{}, no_gui:{}, limit:{}'
-          .format(_skip, _threads, _google, _naver, _full, _face, _no_gui, _limit))
+    _keyword = args.keyword
+    print('Options - skip:{}, threads:{}, google:{}, naver:{}, full_resolution:{}, face:{}, no_gui:{}, limit:{}, keyword:{}'
+          .format(_skip, _threads, _google, _naver, _full, _face, _no_gui, _limit, _keyword))
 
     crawler = AutoCrawler(skip_already_exist=_skip, n_threads=_threads,
                           do_google=_google, do_naver=_naver, full_resolution=_full,
-                          face=_face, no_gui=_no_gui, limit=_limit)
+                          face=_face, no_gui=_no_gui, limit=_limit, keyword=_keyword)
     crawler.do_crawling()

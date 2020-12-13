@@ -133,11 +133,10 @@ class CollectLinks:
         print('Scraping links')
 
         links = []
-
         for box in photo_grid_boxes:
             try:
                 imgs = box.find_elements(By.TAG_NAME, 'img')
-
+                
                 for img in imgs:
                     # self.highlight(img)
                     src = img.get_attribute("src")
@@ -146,7 +145,6 @@ class CollectLinks:
                     if str(src).startswith('data:'):
                         src = img.get_attribute("data-iurl")
                     links.append(src)
-
             except Exception as e:
                 print('[Exception occurred while collecting links from google] {}'.format(e))
 
@@ -261,7 +259,7 @@ class CollectLinks:
                 scroll_patience = 0
                 last_scroll = scroll
 
-            if scroll_patience >= 30:
+            if scroll_patience >= 30 or count > 15:
                 break
 
             elem.send_keys(Keys.RIGHT)
